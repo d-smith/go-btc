@@ -2,24 +2,38 @@ package main
 
 import (
 	"fmt"
+	"log"
 
-	"github.com/tyler-smith/go-bip32"
-	"github.com/tyler-smith/go-bip39"
+	"github.com/wemeetagain/go-hdwallet"
 )
 
 func main() {
-	// Generate a mnemonic for memorization or user-friendly seeds
-	entropy, _ := bip39.NewEntropy(256)
-	mnemonic, _ := bip39.NewMnemonic(entropy)
+	// Generate a random 256 bit seed
+	seed, err := hdwallet.GenSeed(256)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
-	seed := bip39.NewSeed(mnemonic, "Secret Passphrase")
+	// Create a master private key
+	masterprv := hdwallet.MasterKey(seed)
+	fmt.Println("private key", masterprv)
 
-	masterKey, _ := bip32.NewMasterKey(seed)
-	publicKey := masterKey.PublicKey()
+	// Convert a private key to public key
+	masterpub := masterprv.Pub()
 
-	// Display mnemonic and keys
-	fmt.Println("Mnemonic: ", mnemonic)
-	fmt.Println("Master private key: ", masterKey)
-	fmt.Println("Master public key: ", publicKey)
+	fmt.Println(masterpub)
+	fmt.Println(masterpub.Address())
+	/*
+	   // Generate new child key based on private or public key
+	   childprv, err := masterprv.Child(0)
+	   childpub, err := masterpub.Child(0)
+
+	   // Create bitcoin address from public key
+	   address := childpub.Address()
+
+	   // Convenience string -> string Child and ToAddress functions
+	   walletstring := childpub.String()
+	   childstring, err := hdwallet.StringChild(walletstring, 0)
+	   childaddress, err := hdwallet.StringAddress(childstring)
+	*/
 }
